@@ -5,9 +5,10 @@ from configparser import ConfigParser
 
 def main():
     config = ConfigParser()
-    plexconfig = config.read('config.ini')['PLEX']
-    baseurl = 'http://192.168.1.66:32400'
-    token = 'u5HxSLWFzCu1-QDrxd5e'
+    config.read('Config/config.ini')
+    plexconfig = config['PLEX']
+    baseurl = plexconfig.get('URL')
+    token = plexconfig.get('TOKEN')
     plex = PlexServer(baseurl, token)
     getalbumsreleasedtoday(plex)
 
