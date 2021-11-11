@@ -1,6 +1,6 @@
 from plexapi.server import PlexServer
 import datetime
-from AlbumInfo import album
+from scr.AlbumInfo import album
 from configparser import ConfigParser
 
 def main():
