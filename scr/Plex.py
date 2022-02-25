@@ -24,24 +24,24 @@ def main():
     if ustring == "1":
         get_albums_released_today(plex)
     elif ustring == "2":
-        get_all_alblums_released_dates(plex)
+        get_all_albums_released_dates(plex)
     elif ustring == "3":
         get_album_play_count(plex)
 
 
 def get_plex_server(config):
-    plexconfig = config['PLEX']
-    baseurl = plexconfig.get('URL')
-    token = plexconfig.get('TOKEN')
+    plex_config = config['PLEX']
+    baseurl = plex_config.get('URL')
+    token = plex_config.get('TOKEN')
     return PlexServer(baseurl, token)
 
 
-def get_all_alblums_released_dates(plex):
+def get_all_albums_released_dates(plex):
     albums = []
     music = plex.library.section(f"Music")
-    for plexalbum in music.search(libtype="album"):
-        if plexalbum.originallyAvailableAt is not None:
-            albums.append(album(plexalbum, plexalbum.parentTitle, plexalbum.title, plexalbum.originallyAvailableAt))
+    for plex_album in music.search(libtype="album"):
+        if plex_album.originallyAvailableAt is not None:
+            albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt))
 
     write_age_to_csv(albums)
 
@@ -49,12 +49,12 @@ def get_all_alblums_released_dates(plex):
 def get_album_play_count(plex):
     albums = []
     music = plex.library.section(f"Music")
-    for plexalbum in music.search(libtype="album"):
-        if (plexalbum.originallyAvailableAt != None):
-            albums.append(album(plexalbum, plexalbum.parentTitle, plexalbum.title, plexalbum.originallyAvailableAt,
-                                plexalbum.viewedLeafCount, plexalbum.leafCount))
+    for plex_album in music.search(libtype="album"):
+        if plex_album.originallyAvailableAt is not None:
+            albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt,
+                                plex_album.viewedLeafCount, plex_album.leafCount))
 
-    printandwrite(albums, SortType.artist, PrintType.playCount, False)
+    print_and_write(albums, SortType.artist, PrintType.playCount, False)
 
 
 def get_albums_released_today(plex):
@@ -62,11 +62,11 @@ def get_albums_released_today(plex):
     dt = datetime.datetime.today()
     music = plex.library.section(f"Music")
 
-    for plexalbum in music.search(libtype="album"):
-        if (plexalbum.originallyAvailableAt is not None
-                and plexalbum.originallyAvailableAt.month == dt.month
-                and plexalbum.originallyAvailableAt.day == dt.day):
-            albums.append(album(plexalbum, plexalbum.parentTitle, plexalbum.title, plexalbum.originallyAvailableAt))
+    for plex_album in music.search(libtype="album"):
+        if (plex_album.originallyAvailableAt is not None
+                and plex_album.originallyAvailableAt.month == dt.month
+                and plex_album.originallyAvailableAt.day == dt.day):
+            albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt))
 
     print("1. Add to playlist")
     print("2. print")
@@ -81,37 +81,37 @@ def get_albums_released_today(plex):
     if ustring == "1":
         add_to_playlist(plex, "Released Today", albums)
     elif ustring == "2":
-        printandwrite(albums, SortType.date, PrintType.age)
+        print_and_write(albums, SortType.date, PrintType.age)
     elif ustring == "3":
         add_to_playlist(plex, "Released Today", albums)
-        printandwrite(albums, SortType.date, PrintType.age)
+        print_and_write(albums, SortType.date, PrintType.age)
 
 
-def printandwrite(albums, ordertype=SortType.date, printType = PrintType.age, toPrint = True):
-    if ordertype == SortType.date:
+def print_and_write(albums, order_type=SortType.date, print_type=PrintType.age, to_print=True):
+    if order_type == SortType.date:
         albums.sort(key=lambda x: x.age, reverse=True)
-    elif ordertype == SortType.artist:
+    elif order_type == SortType.artist:
         albums.sort(key=lambda x: x.artist, reverse=True)
 
-    if toPrint:
+    if to_print:
         for a in albums:
-            if printType == PrintType.age:
+            if print_type == PrintType.age:
                 a.print_album_age()
-            elif printType == PrintType.playCount:
+            elif print_type == PrintType.playCount:
                 a.print_album_with_count()
     else:
         write_count_to_csv(albums)
 
 
-def add_to_playlist(plex, playlistName, albums, removeItem=True, ordertype=SortType.date, ):
-    playlist = plex.playlist(playlistName)
+def add_to_playlist(plex, playlist_name, albums, remove_item=True, order_type=SortType.date, ):
+    playlist = plex.playlist(playlist_name)
 
-    if removeItem:
+    if remove_item:
         playlist.removeItems(playlist.items())
 
-    if ordertype == SortType.date:
+    if order_type == SortType.date:
         albums.sort(key=lambda x: x.age, reverse=True)
-    elif ordertype == SortType.artist:
+    elif order_type == SortType.artist:
         albums.sort(key=lambda x: x.artist, reverse=True)
 
     for a in albums:
@@ -121,8 +121,8 @@ def add_to_playlist(plex, playlistName, albums, removeItem=True, ordertype=SortT
 def write_age_to_csv(albums):
     albums.sort(key=lambda x: (x.year, x.month, x.day), reverse=True)
 
-    pathtosave = get_path_config()
-    with open(pathtosave, mode='w', encoding="utf-8", newline='') as csv_file:
+    path_to_save = get_path_config()
+    with open(path_to_save, mode='w', encoding="utf-8", newline='') as csv_file:
         fieldnames = ['title', 'artist', 'year', 'month', 'day']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
@@ -132,10 +132,10 @@ def write_age_to_csv(albums):
 
 
 def write_count_to_csv(albums):
-    albums.sort(key=lambda x: (x.artist), reverse=False)
+    albums.sort(key=lambda x: x.artist, reverse=False)
 
-    pathtosave = get_path_config()
-    with open(pathtosave, mode='w', encoding="utf-8", newline='') as csv_file:
+    path_to_save = get_path_config()
+    with open(path_to_save, mode='w', encoding="utf-8", newline='') as csv_file:
         fieldnames = ['title', 'artist', 'count', 'total']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
@@ -148,7 +148,7 @@ def get_path_config():
     config = ConfigParser()
     config.read('scr/Config/config.ini')
     pathconfig = config['PATHS']
-    return pathconfig.get('CSVLOCATION')
+    return pathconfig.get('CSV-LOCATION')
 
 
 if __name__ == "__main__":
