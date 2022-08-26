@@ -16,6 +16,9 @@ class album:
     def print_album_age(self):
         print(f'{self.artist} - {self.title} - {self.age} years ago')
 
+    def print_album_age_with_count(self):
+        print(f'{self.artist} - {self.title} - {self.age} years ago - {self.viewedLeafCount}/{self.leafCount}')
+
     def print_album_with_count(self):
         print(f'{self.artist} - {self.title} - {self.viewedLeafCount}/{self.leafCount}')
 

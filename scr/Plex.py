@@ -19,6 +19,7 @@ def main():
 
     config = ConfigParser()
     config.read('scr/Config/config.ini')
+
     plex = get_plex_server(config)
 
     if ustring == "1":
@@ -57,6 +58,7 @@ def get_album_play_count(plex):
     print_and_write(albums, SortType.artist, PrintType.playCount, False)
 
 
+
 def get_albums_released_today(plex):
     albums = []
     dt = datetime.datetime.today()
@@ -66,10 +68,11 @@ def get_albums_released_today(plex):
         if (plex_album.originallyAvailableAt is not None
                 and plex_album.originallyAvailableAt.month == dt.month
                 and plex_album.originallyAvailableAt.day == dt.day):
-            albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt))
+            albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt,
+                                plex_album.viewedLeafCount, plex_album.leafCount))
 
     print("1. Add to playlist")
-    print("2. print")
+    print("2. Print")
     print("3. Both")
     print("q. (Q)uit")
 
@@ -96,7 +99,7 @@ def print_and_write(albums, order_type=SortType.date, print_type=PrintType.age, 
     if to_print:
         for a in albums:
             if print_type == PrintType.age:
-                a.print_album_age()
+                a.print_album_age_with_count()
             elif print_type == PrintType.playCount:
                 a.print_album_with_count()
     else:
