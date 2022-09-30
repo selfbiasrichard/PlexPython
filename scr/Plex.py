@@ -10,6 +10,7 @@ def main():
     print("1. Get Albums Released Today")
     print("2. Get All Albums Released Dates")
     print("3. Get Albums Play Count")
+    print("4. Get Albums Released For The Week")
     print("q. (Q)uit")
 
     ustring = input("Please enter input: ")
@@ -28,6 +29,46 @@ def main():
         get_all_albums_released_dates(plex)
     elif ustring == "3":
         get_album_play_count(plex)
+    elif ustring == "4":
+        get_albums_released_for_week(plex)
+
+
+def get_albums_released_for_week(plex):
+    print("1. Add to playlist")
+    print("2. Print")
+    print("3. Both")
+    print("q. (Q)uit")
+
+    ustring = input("Please enter input: ")
+
+    if ustring.lower() == "q":
+        quit()
+
+    dt = datetime.datetime.today()
+
+    for x in range(7):
+        albums = []
+        week_name = dt.strftime('%A')
+
+        music = plex.library.section(f"Music")
+
+        for plex_album in music.search(libtype="album"):
+            if (plex_album.originallyAvailableAt is not None
+                    and plex_album.originallyAvailableAt.month == dt.month
+                    and plex_album.originallyAvailableAt.day == dt.day):
+                albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt,
+                                    plex_album.viewedLeafCount, plex_album.leafCount))
+
+        if ustring == "1":
+            add_to_playlist(plex, week_name, albums)
+        elif ustring == "2":
+            print_and_write(albums, week_name, SortType.date, PrintType.age, dt)
+        elif ustring == "3":
+            add_to_playlist(plex, week_name, albums)
+            print_and_write(albums, week_name, SortType.date, PrintType.age, dt)
+
+        dt = dt + datetime.timedelta(days=1)
+        print()
 
 
 def get_plex_server(config):
@@ -55,8 +96,7 @@ def get_album_play_count(plex):
             albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt,
                                 plex_album.viewedLeafCount, plex_album.leafCount))
 
-    print_and_write(albums, SortType.artist, PrintType.playCount, False)
-
+    print_and_write(albums, "Play Count", SortType.artist, PrintType.playCount, False)
 
 
 def get_albums_released_today(plex):
@@ -81,22 +121,27 @@ def get_albums_released_today(plex):
     if ustring.lower() == "q":
         quit()
 
+    playlist = "Released Today"
+
     if ustring == "1":
-        add_to_playlist(plex, "Released Today", albums)
+        add_to_playlist(plex, playlist, albums)
     elif ustring == "2":
-        print_and_write(albums, SortType.date, PrintType.age)
+        print_and_write(albums, playlist, SortType.date, PrintType.age)
     elif ustring == "3":
-        add_to_playlist(plex, "Released Today", albums)
-        print_and_write(albums, SortType.date, PrintType.age)
+        add_to_playlist(plex, playlist, albums)
+        print_and_write(albums, playlist, SortType.date, PrintType.age)
 
 
-def print_and_write(albums, order_type=SortType.date, print_type=PrintType.age, to_print=True):
+def print_and_write(albums, playlist, order_type=SortType.date, print_type=PrintType.age, to_print=True, date=None):
     if order_type == SortType.date:
         albums.sort(key=lambda x: x.age, reverse=True)
     elif order_type == SortType.artist:
         albums.sort(key=lambda x: x.artist, reverse=True)
 
     if to_print:
+        if date is not None:
+            playlist = f"{playlist} - {date}"
+        print(playlist)
         for a in albums:
             if print_type == PrintType.age:
                 a.print_album_age_with_count()
