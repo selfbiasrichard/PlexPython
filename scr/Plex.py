@@ -34,38 +34,22 @@ def main():
 
 
 def get_albums_released_for_week(plex):
-    print("1. Add to playlist")
-    print("2. Print")
-    print("3. Both")
-    print("q. (Q)uit")
-
-    ustring = input("Please enter input: ")
-
-    if ustring.lower() == "q":
-        quit()
+    ustring = get_user_input()
 
     dt = datetime.datetime.today()
 
     for x in range(7):
-        albums = []
         week_name = dt.strftime('%A')
 
-        music = plex.library.section(f"Music")
-
-        for plex_album in music.search(libtype="album"):
-            if (plex_album.originallyAvailableAt is not None
-                    and plex_album.originallyAvailableAt.month == dt.month
-                    and plex_album.originallyAvailableAt.day == dt.day):
-                albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt,
-                                    plex_album.viewedLeafCount, plex_album.leafCount))
+        albums = get_music(plex, dt)
 
         if ustring == "1":
             add_to_playlist(plex, week_name, albums)
         elif ustring == "2":
-            print_and_write(albums, week_name, SortType.date, PrintType.age, dt)
+            print_and_write(albums, week_name, SortType.date, PrintType.age, date=dt)
         elif ustring == "3":
             add_to_playlist(plex, week_name, albums)
-            print_and_write(albums, week_name, SortType.date, PrintType.age, dt)
+            print_and_write(albums, week_name, SortType.date, PrintType.age, date=dt)
 
         dt = dt + datetime.timedelta(days=1)
         print()
@@ -100,26 +84,10 @@ def get_album_play_count(plex):
 
 
 def get_albums_released_today(plex):
-    albums = []
+    ustring = get_user_input()
     dt = datetime.datetime.today()
-    music = plex.library.section(f"Music")
 
-    for plex_album in music.search(libtype="album"):
-        if (plex_album.originallyAvailableAt is not None
-                and plex_album.originallyAvailableAt.month == dt.month
-                and plex_album.originallyAvailableAt.day == dt.day):
-            albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt,
-                                plex_album.viewedLeafCount, plex_album.leafCount))
-
-    print("1. Add to playlist")
-    print("2. Print")
-    print("3. Both")
-    print("q. (Q)uit")
-
-    ustring = input("Please enter input: ")
-
-    if ustring.lower() == "q":
-        quit()
+    albums = get_music(plex, dt)
 
     playlist = "Released Today"
 
@@ -132,6 +100,20 @@ def get_albums_released_today(plex):
         print_and_write(albums, playlist, SortType.date, PrintType.age)
 
 
+def get_music(plex, dt):
+    albums = []
+    music = plex.library.section(f"Music")
+
+    for plex_album in music.search(libtype="album"):
+        if (plex_album.originallyAvailableAt is not None
+                and plex_album.originallyAvailableAt.month == dt.month
+                and plex_album.originallyAvailableAt.day == dt.day):
+            albums.append(album(plex_album, plex_album.parentTitle, plex_album.title, plex_album.originallyAvailableAt,
+                                plex_album.viewedLeafCount, plex_album.leafCount))
+
+    return albums
+
+
 def print_and_write(albums, playlist, order_type=SortType.date, print_type=PrintType.age, to_print=True, date=None):
     if order_type == SortType.date:
         albums.sort(key=lambda x: x.age, reverse=True)
@@ -140,8 +122,10 @@ def print_and_write(albums, playlist, order_type=SortType.date, print_type=Print
 
     if to_print:
         if date is not None:
-            playlist = f"{playlist} - {date}"
+            date_string = date.strftime("%d-%m-%Y")
+            playlist = f"{playlist} - {date_string}"
         print(playlist)
+        print()
         for a in albums:
             if print_type == PrintType.age:
                 a.print_album_age_with_count()
@@ -177,6 +161,19 @@ def write_age_to_csv(albums):
         writer.writeheader()
         for a in albums:
             writer.writerow({'title': a.title, 'artist': a.artist, 'year': a.year, 'month': a.month, 'day': a.day})
+
+def get_user_input():
+    print("1. Add to playlist")
+    print("2. Print")
+    print("3. Both")
+    print("q. (Q)uit")
+
+    ustring = input("Please enter input: ")
+
+    if ustring.lower() == "q":
+        quit()
+    else:
+        return ustring
 
 
 def write_count_to_csv(albums):
