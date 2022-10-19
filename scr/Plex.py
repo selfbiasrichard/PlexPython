@@ -39,17 +39,18 @@ def get_albums_released_for_week(plex):
     dt = datetime.datetime.today()
 
     for x in range(7):
+        day_of_week = dt.weekday()
         week_name = dt.strftime('%A')
 
         albums = get_music(plex, dt)
 
         if ustring == "1":
-            add_to_playlist(plex, week_name, albums)
+            add_to_playlist(plex, f"{day_of_week} {week_name}", albums)
         elif ustring == "2":
-            print_and_write(albums, week_name, SortType.date, PrintType.age, date=dt)
+            print_and_write(albums, f"{day_of_week} {week_name}", SortType.date, PrintType.age, date=dt)
         elif ustring == "3":
-            add_to_playlist(plex, week_name, albums)
-            print_and_write(albums, week_name, SortType.date, PrintType.age, date=dt)
+            add_to_playlist(plex, f"{day_of_week} {week_name}", albums)
+            print_and_write(albums, f"{day_of_week} {week_name}", SortType.date, PrintType.age, date=dt)
 
         dt = dt + datetime.timedelta(days=1)
         print()
